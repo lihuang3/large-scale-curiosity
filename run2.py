@@ -8,13 +8,14 @@ import os.path as osp
 from functools import partial
 
 import sys
-sys.path.append('/home/cougarnet.uh.edu/lhuang28/baselines')
+
+sys.path.append('/project/becker/lihuang3/github/baselines')
 
 import gym
 import tensorflow as tf
 from baselines import logger
 from baselines.bench import Monitor
-from baselines.common.atari_wrappers import NoopResetEnv, FrameStack
+from baselines.common.atari_wrappers import *
 from mpi4py import MPI
 
 from auxiliary_tasks import FeatureExtractor, InverseDynamics, VAE, JustPixels
@@ -24,6 +25,8 @@ from dynamics import Dynamics, UNet
 from utils import random_agent_ob_mean_std
 from wrappers import MontezumaInfoWrapper, make_mario_env, make_robo_pong, make_robo_hockey, \
     make_multi_pong, AddRandomStateToInfo, MaxAndSkipEnv, ProcessFrame84, ExtraTimeLimit
+
+from baselines.common.tf_util import get_session, save_variables, load_variables
 
 
 def start_experiment(**args):
@@ -110,14 +113,24 @@ class Trainer(object):
 
     def train(self):
         self.agent.start_interaction(self.envs, nlump=self.hps['nlumps'], dynamics=self.dynamics)
+        sess = tf.get_default_session()
+        self.save = functools.partial(save_variables, sess=sess)
         while True:
             info = self.agent.step()
             if info['update']:
                 logger.logkvs(info['update'])
                 logger.dumpkvs()
+
+                
+                if info['update']['n_updates'] % 10 == 0:                
+                    checkdir = osp.join(logger.get_dir(), 'checkpoints')
+                    os.makedirs(checkdir, exist_ok=True)
+                    savepath = osp.join(checkdir, '%.5i'%info['update']['n_updates'])
+                    print('Saving to', savepath)
+                    self.save(savepath)
+
             if self.agent.rollout.stats['tcount'] > self.num_timesteps:
                 break
-
         self.agent.stop_interaction()
 
 
@@ -142,6 +155,11 @@ def make_env_all_params(rank, add_monitor, args):
             env = make_robo_pong()
         elif args["env"] == "hockey":
             env = make_robo_hockey()
+    elif args["env_kind"] == "my_games":
+        env = gym.make(args['env'])
+        env = MaxAndSkipEnv(env, skip=4)
+        env = WarpFrame(env)
+        env = FrameStack(env, 4)
 
     if add_monitor:
         env = Monitor(env, osp.join(logger.get_dir(), '%.2i' % rank))
@@ -168,8 +186,8 @@ def add_environments_params(parser):
     # 'BreakoutNoFrameskip-v4'
     parser.add_argument('--env', help='environment ID', default= 'MazeEnv-v2',
                         type=str)
-    parser.add_argument('--max-episode-steps', help='maximum number of timesteps for episode', default=1000, type=int)
-    parser.add_argument('--env_kind', type=str, default="atari")
+    parser.add_argument('--max-episode-steps', help='maximum number of timesteps for episode', default=1500, type=int)
+    parser.add_argument('--env_kind', type=str, default="my_games")
     parser.add_argument('--noop_max', type=int, default=30)
 
 
@@ -177,18 +195,18 @@ def add_optimization_params(parser):
     parser.add_argument('--lambda', type=float, default=0.95)
     parser.add_argument('--gamma', type=float, default=0.99)
     parser.add_argument('--nminibatches', type=int, default=8)
-    parser.add_argument('--norm_adv', type=int, default=1)
-    parser.add_argument('--norm_rew', type=int, default=1)
+    parser.add_argument('--norm_adv', type=int, default=0)
+    parser.add_argument('--norm_rew', type=int, default=0)
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--ent_coeff', type=float, default=0.001)
     parser.add_argument('--nepochs', type=int, default=3)
-    parser.add_argument('--num_timesteps', type=int, default=int(1e8))
+    parser.add_argument('--num_timesteps', type=int, default=int(3e7))
 
 
 def add_rollout_params(parser):
-    parser.add_argument('--nsteps_per_seg', type=int, default=128)
+    parser.add_argument('--nsteps_per_seg', type=int, default=2000)
     parser.add_argument('--nsegs_per_env', type=int, default=1)
-    parser.add_argument('--envs_per_process', type=int, default=128)
+    parser.add_argument('--envs_per_process', type=int, default=64)
     parser.add_argument('--nlumps', type=int, default=1)
 
 
@@ -204,10 +222,10 @@ if __name__ == '__main__':
     parser.add_argument('--seed', help='RNG seed', type=int, default=0)
     parser.add_argument('--dyn_from_pixels', type=int, default=0)
     parser.add_argument('--use_news', type=int, default=0)
-    parser.add_argument('--ext_coeff', type=float, default=0.)
-    parser.add_argument('--int_coeff', type=float, default=1.)
+    parser.add_argument('--ext_coeff', type=float, default=1.00)
+    parser.add_argument('--int_coeff', type=float, default=0.1)
     parser.add_argument('--layernorm', type=int, default=0)
-    parser.add_argument('--feat_learning', type=str, default="none",
+    parser.add_argument('--feat_learning', type=str, default='idf',
                         choices=["none", "idf", "vaesph", "vaenonsph", "pix2pix"])
 
     args = parser.parse_args()

@@ -133,6 +133,7 @@ class PpoOptimizer(object):
         self.buf_rets[:] = self.buf_advs + self.rollout.buf_vpreds
 
     def update(self):
+        # Rewards normalization
         if self.normrew:
             rffs = np.array([self.rff.update(rew) for rew in self.rollout.buf_rews.T])
             rffs_mean, rffs_std, rffs_count = mpi_moments(rffs.ravel())

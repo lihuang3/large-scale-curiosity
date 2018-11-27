@@ -1,7 +1,7 @@
 import tensorflow as tf
 from baselines.common.distributions import make_pdtype
 
-from utils import getsess, small_convnet, activ, fc, flatten_two_dims, unflatten_first_dim
+from utils import getsess, small_convnet, activ, fc, flatten_two_dims, unflatten_first_dim, custom_cnn
 
 
 class CnnPolicy(object):
@@ -32,8 +32,9 @@ class CnnPolicy(object):
             self.features = unflatten_first_dim(self.flat_features, sh)
 
             with tf.variable_scope(scope, reuse=False):
-                x = fc(self.flat_features, units=hidsize, activation=activ)
-                x = fc(x, units=hidsize, activation=activ)
+                # x = fc(self.flat_features, units=hidsize, activation=activ)
+                # x = fc(x, units=hidsize, activation=activ)
+                x = self.flat_features
                 pdparam = fc(x, name='pd', units=pdparamsize, activation=None)
                 vpred = fc(x, name='value_function_output', units=1, activation=None)
             pdparam = unflatten_first_dim(pdparam, sh)
@@ -52,6 +53,7 @@ class CnnPolicy(object):
         with tf.variable_scope(self.scope + "_features", reuse=reuse):
             x = (tf.to_float(x) - self.ob_mean) / self.ob_std
             x = small_convnet(x, nl=self.nl, feat_dim=self.feat_dim, last_nl=None, layernormalize=self.layernormalize)
+            # x = custom_cnn(x, nl=self.nl, feat_dim=self.feat_dim, last_nl=None, layernormalize=self.layernormalize)
 
         if x_has_timesteps:
             x = unflatten_first_dim(x, sh)
