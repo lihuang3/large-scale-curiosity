@@ -184,9 +184,9 @@ def get_experiment_environment(**args):
 
 def add_environments_params(parser):
     # 'BreakoutNoFrameskip-v4'
-    parser.add_argument('--env', help='environment ID', default= 'MazeEnv-v2',
+    parser.add_argument('--env', help='environment ID', default= 'Maze1203Env-v2',
                         type=str)
-    parser.add_argument('--max-episode-steps', help='maximum number of timesteps for episode', default=1500, type=int)
+    parser.add_argument('--max-episode-steps', help='maximum number of timesteps for episode', default=2000, type=int)
     parser.add_argument('--env_kind', type=str, default="my_games")
     parser.add_argument('--noop_max', type=int, default=30)
 
@@ -200,7 +200,7 @@ def add_optimization_params(parser):
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--ent_coeff', type=float, default=0.001)
     parser.add_argument('--nepochs', type=int, default=3)
-    parser.add_argument('--num_timesteps', type=int, default=int(3e7))
+    parser.add_argument('--num_timesteps', type=int, default=int(5e7))
 
 
 def add_rollout_params(parser):

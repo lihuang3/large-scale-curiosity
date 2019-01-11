@@ -180,6 +180,7 @@ class PpoOptimizer(object):
             (self.ph_ret, resh(self.buf_rets)),
             (self.ph_adv, resh(self.buf_advs)),
         ]
+
         ph_buf.extend([
             (self.dynamics.last_ob,
              self.rollout.buf_obs_last.reshape([self.nenvs * self.nsegs_per_env, 1, *self.ob_space.shape]))
@@ -191,7 +192,7 @@ class PpoOptimizer(object):
             for start in range(0, self.nenvs * self.nsegs_per_env, envsperbatch):
                 end = start + envsperbatch
                 mbenvinds = envinds[start:end]
-                fd = {ph: buf[mbenvinds] for (ph, buf) in ph_buf}
+                fd = {ph: buf[mbenvinds] for (ph, buf) in ph_buf}                
                 fd.update({self.ph_lr: self.lr, self.ph_cliprange: self.cliprange})
                 mblossvals.append(getsess().run(self._losses + (self._train,), fd)[:-1])
 

@@ -98,11 +98,11 @@ class Trainer(object):
             dynamics=self.dynamics
         )
 
-        self.agent.to_report['aux'] = tf.reduce_mean(self.feature_extractor.loss)
-        self.agent.total_loss += self.agent.to_report['aux']
-        self.agent.to_report['dyn_loss'] = tf.reduce_mean(self.dynamics.loss)
-        self.agent.total_loss += self.agent.to_report['dyn_loss']
-        self.agent.to_report['feat_var'] = tf.reduce_mean(tf.nn.moments(self.feature_extractor.features, [0, 1])[1])
+        # self.agent.to_report['aux'] = tf.reduce_mean(self.feature_extractor.loss)
+        # self.agent.total_loss += self.agent.to_report['aux']
+        # self.agent.to_report['dyn_loss'] = tf.reduce_mean(self.dynamics.loss)
+        # self.agent.total_loss += self.agent.to_report['dyn_loss']
+        # self.agent.to_report['feat_var'] = tf.reduce_mean(tf.nn.moments(self.feature_extractor.features, [0, 1])[1])
 
     def _set_env_vars(self):
         env = self.make_env(0, add_monitor=False)

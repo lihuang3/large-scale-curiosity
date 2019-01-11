@@ -39,7 +39,7 @@ def start_experiment(**args):
     with log, tf_sess:
         logdir = logger.get_dir()
         print("results will be saved to ", logdir)
-        trainer.train()
+        trainer.train(args=args)
 
 
 class Trainer(object):
@@ -111,21 +111,33 @@ class Trainer(object):
         del env
         self.envs = [functools.partial(self.make_env, i) for i in range(self.envs_per_process)]
 
-    def train(self):
+    def train(self, args):
         self.agent.start_interaction(self.envs, nlump=self.hps['nlumps'], dynamics=self.dynamics)
         sess = tf.get_default_session()
         self.save = functools.partial(save_variables, sess=sess)
+        self.load = functools.partial(load_variables, sess=sess)
+        checkdir = osp.join(logger.get_dir(), 'checkpoints')
+        os.makedirs(checkdir, exist_ok=True)
+        load_weights = args['load_weights']
+        start_nupdates = 0
+        if load_weights is not None:
+            load_path = osp.join(checkdir, load_weights)
+            start_nupdates = int(load_weights)
+            print('Loading checkpoint from %s ' % load_weights)
+            self.load(load_path)
+
         while True:
             info = self.agent.step()
             if info['update']:
+                info['update']['n_updates'] += start_nupdates
+                info['update']['tcount'] += start_nupdates*args['nsteps_per_seg']*args['envs_per_process']
                 logger.logkvs(info['update'])
                 logger.dumpkvs()
 
                 
-                if info['update']['n_updates'] % 10 == 0:                
-                    checkdir = osp.join(logger.get_dir(), 'checkpoints')
-                    os.makedirs(checkdir, exist_ok=True)
-                    savepath = osp.join(checkdir, '%.5i'%info['update']['n_updates'])
+                if info['update']['n_updates'] % 10 == 0: 
+                    weights_index =  info['update']['n_updates']             
+                    savepath = osp.join(checkdir, '%.5i'% weights_index)
                     print('Saving to', savepath)
                     self.save(savepath)
 
@@ -184,9 +196,9 @@ def get_experiment_environment(**args):
 
 def add_environments_params(parser):
     # 'BreakoutNoFrameskip-v4'
-    parser.add_argument('--env', help='environment ID', default= 'MazeEnv-v2',
+    parser.add_argument('--env', help='environment ID', default= 'Maze1203AggEnv-v0',
                         type=str)
-    parser.add_argument('--max-episode-steps', help='maximum number of timesteps for episode', default=1500, type=int)
+    parser.add_argument('--max_episode_steps', help='maximum number of timesteps for episode', default=None, type=int)
     parser.add_argument('--env_kind', type=str, default="my_games")
     parser.add_argument('--noop_max', type=int, default=30)
 
@@ -194,19 +206,19 @@ def add_environments_params(parser):
 def add_optimization_params(parser):
     parser.add_argument('--lambda', type=float, default=0.95)
     parser.add_argument('--gamma', type=float, default=0.99)
-    parser.add_argument('--nminibatches', type=int, default=8)
+    parser.add_argument('--nminibatches', type=int, default=16)
     parser.add_argument('--norm_adv', type=int, default=0)
     parser.add_argument('--norm_rew', type=int, default=0)
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--ent_coeff', type=float, default=0.001)
     parser.add_argument('--nepochs', type=int, default=3)
-    parser.add_argument('--num_timesteps', type=int, default=int(3e7))
+    parser.add_argument('--num_timesteps', type=int, default=int(2e8))
 
 
 def add_rollout_params(parser):
-    parser.add_argument('--nsteps_per_seg', type=int, default=2000)
+    parser.add_argument('--nsteps_per_seg', type=int, default=1000)
     parser.add_argument('--nsegs_per_env', type=int, default=1)
-    parser.add_argument('--envs_per_process', type=int, default=64)
+    parser.add_argument('--envs_per_process', type=int, default=128)
     parser.add_argument('--nlumps', type=int, default=1)
 
 
@@ -218,6 +230,7 @@ if __name__ == '__main__':
     add_optimization_params(parser)
     add_rollout_params(parser)
 
+    parser.add_argument('--load_weights', type=str, default=None)
     parser.add_argument('--exp_name', type=str, default='')
     parser.add_argument('--seed', help='RNG seed', type=int, default=0)
     parser.add_argument('--dyn_from_pixels', type=int, default=0)
