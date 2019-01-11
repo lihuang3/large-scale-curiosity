@@ -208,7 +208,7 @@ def add_optimization_params(parser):
     parser.add_argument('--lambda', type=float, default=0.95)
     parser.add_argument('--gamma', type=float, default=0.99)
     parser.add_argument('--nminibatches', type=int, default=16)
-    parser.add_argument('--norm_adv', type=int, default=0)
+    parser.add_argument('--norm_adv', type=int, default=1)
     parser.add_argument('--norm_rew', type=int, default=0)
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--ent_coeff', type=float, default=0.001)
