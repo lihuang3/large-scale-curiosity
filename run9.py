@@ -170,9 +170,9 @@ def make_env_all_params(rank, add_monitor, args):
             env = make_robo_hockey()
     elif args["env_kind"] == "my_games":
         env = gym.make(args['env'])
-        env = MaxAndSkipEnv(env, skip=2)
+        env = MaxAndSkipEnv(env, skip=4)
         env = WarpFrame(env)
-        env = FrameStack(env, 2)
+        env = FrameStack(env, 4)
 
     if add_monitor:
         env = Monitor(env, osp.join(logger.get_dir(), '%.2i' % rank))
@@ -237,7 +237,7 @@ if __name__ == '__main__':
     parser.add_argument('--dyn_from_pixels', type=int, default=0)
     parser.add_argument('--use_news', type=int, default=0)
     parser.add_argument('--ext_coeff', type=float, default=1.00)
-    parser.add_argument('--int_coeff', type=float, default=0.1)
+    parser.add_argument('--int_coeff', type=float, default=0.5)
     parser.add_argument('--layernorm', type=int, default=0)
     parser.add_argument('--feat_learning', type=str, default='idf',
                         choices=["none", "idf", "vaesph", "vaenonsph", "pix2pix"])
