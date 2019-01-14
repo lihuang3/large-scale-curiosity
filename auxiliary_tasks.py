@@ -70,14 +70,13 @@ class InverseDynamics(FeatureExtractor):
             return idfpd.neglogp(self.ac)
 
 class RandomNetworkDistillation(FeatureExtractor):
-    def __init__(self, policy, features_shared_with_policy, feat_dim=None, layernormalize=None, 
-            scope="random_network_distillation"):
-        super(InverseDynamics, self).__init__(scope="inverse_dynamics", policy=policy,
+    def __init__(self, policy, features_shared_with_policy, feat_dim=None, layernormalize=None):
+        super(RandomNetworkDistillation, self).__init__(scope="random_network_distillation", policy=policy,
                                               features_shared_with_policy=features_shared_with_policy,
                                               feat_dim=feat_dim, layernormalize=layernormalize)
 
         self.features = self.get_features(self.next_ob, reuse=False, scope="pred_features")
-        self.next_features = self.get_features(self.next_ob, reuse=False, scope="features")
+        self.next_features = self.get_features(self.next_ob, reuse=False, scope="target_features")
             
 
     def get_features(self, x, scope, reuse):
