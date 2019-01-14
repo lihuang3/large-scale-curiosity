@@ -247,7 +247,7 @@ if __name__ == '__main__':
     parser.add_argument('--int_coeff', type=float, default=0.5)
     parser.add_argument('--layernorm', type=int, default=0)
     parser.add_argument('--feat_learning', type=str, default='rnd',
-                        choices=["none", "idf", "rnd", vaesph", "vaenonsph", "pix2pix"])
+                        choices=["none", "idf", "rnd", "vaesph", "vaenonsph", "pix2pix"])
 
     args = parser.parse_args()
 
