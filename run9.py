@@ -75,9 +75,9 @@ class Trainer(object):
 
         if hps['feat_learning'] != 'pix2pix' or 'rnd':
             self.dynamics = Dynamics  
-        elif hps['feat_learning']=='rnd' 
+        elif hps['feat_learning']=='rnd': 
             self.dynamics = RNDDyn 
-        else 
+        else: 
             self.dynamics = UNet
         self.dynamics = self.dynamics(auxiliary_task=self.feature_extractor,
                                       predict_from_pixels=hps['dyn_from_pixels'],
