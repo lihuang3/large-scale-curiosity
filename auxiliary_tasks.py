@@ -91,8 +91,6 @@ class RandomNetworkDistillation(FeatureExtractor):
             self.features = self.get_features(self.next_ob, reuse=False)
             self.next_features = self.get_features(self.next_ob, reuse=False)
             
-            self.next_features = tf.concat([self.features[:, 1:], self.last_features], 1)
-
             self.ac = self.policy.ph_ac
             self.scope = scope
 
