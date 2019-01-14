@@ -75,6 +75,32 @@ class Dynamics(object):
                                  {self.obs: ob[sli(i)], self.last_ob: last_ob[sli(i)],
                                   self.ac: acs[sli(i)]}) for i in range(n_chunks)], 0)
 
+class RNDDyn(Dynamics):
+    def __init__(self, auxiliary_task, predict_from_pixels, feat_dim=None, scope='rnd_dynamics'):
+        super(RNDDyn, self).__init__(auxiliary_task=auxiliary_task,
+                                   predict_from_pixels=predict_from_pixels,
+                                   feat_dim=feat_dim,
+                                   scope=scope) 
+
+    def get_loss(self):
+        sh = tf.shape(self.features)
+        with tf.variable_scope(self.scope):
+            x = flatten_two_dims(self.features)
+            x = tf.layers.dense(x, self.hidsize, activation=tf.nn.relu)
+            x = tf.layers.dense(x, self.hidsize, activation=tf.nn.relu)
+            
+            # def residual(x):
+            #     res = tf.layers.dense(x, self.hidsize, activation=tf.nn.relu)
+            #     res = tf.layers.dense(x, self.hidsize, activation=None)
+            #     return x + res
+
+            # for _ in range(4):
+            #     x = residual(x)
+
+            n_out_features = self.out_features.get_shape()[-1].value
+            x = tf.layers.dense(x, n_out_features, activation=None)
+            x = unflatten_first_dim(x, sh)
+        return tf.reduce_mean((x - tf.stop_gradient(self.out_features)) ** 2, -1)
 
 class UNet(Dynamics):
     def __init__(self, auxiliary_task, predict_from_pixels, feat_dim=None, scope='pixel_dynamics'):

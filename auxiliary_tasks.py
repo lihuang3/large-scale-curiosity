@@ -69,6 +69,17 @@ class InverseDynamics(FeatureExtractor):
             idfpd = self.policy.ac_pdtype.pdfromflat(param)
             return idfpd.neglogp(self.ac)
 
+class RandomNetworkDistillation(FeatureExtractor):
+    def __init__(self, policy, features_shared_with_policy, feat_dim=None, layernormalize=None):
+        super(RandomNetworkDistillation, self).__init__(scope="random_network_distillation", policy=policy,
+                                              features_shared_with_policy=features_shared_with_policy,
+                                              feat_dim=feat_dim, layernormalize=layernormalize)
+
+        self.features = self.get_features(self.next_obs, reuse=False)
+        self.next_features = self.get_features(self.next_obs, reuse=False)
+
+    def get_loss(self):
+        raise NotImplementedError
 
 class VAE(FeatureExtractor):
     def __init__(self, policy, features_shared_with_policy, feat_dim=None, layernormalize=False, spherical_obs=False):

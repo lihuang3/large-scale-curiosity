@@ -64,6 +64,7 @@ class Trainer(object):
 
         self.feature_extractor = {"none": FeatureExtractor,
                                   "idf": InverseDynamics,
+                                  "rnd": RandomNetworkDistillation,
                                   "vaesph": partial(VAE, spherical_obs=True),
                                   "vaenonsph": partial(VAE, spherical_obs=False),
                                   "pix2pix": JustPixels}[hps['feat_learning']]
@@ -72,7 +73,7 @@ class Trainer(object):
                                                         feat_dim=512,
                                                         layernormalize=hps['layernorm'])
 
-        self.dynamics = Dynamics if hps['feat_learning'] != 'pix2pix' else UNet
+        self.dynamics = Dynamics if hps['feat_learning'] != 'pix2pix' or 'rnd' elif hps['feat_learning']=='rnd' RNDDyn else UNet
         self.dynamics = self.dynamics(auxiliary_task=self.feature_extractor,
                                       predict_from_pixels=hps['dyn_from_pixels'],
                                       feat_dim=512)
@@ -99,8 +100,9 @@ class Trainer(object):
             dynamics=self.dynamics
         )
 
-        self.agent.to_report['aux'] = tf.reduce_mean(self.feature_extractor.loss)
-        self.agent.total_loss += self.agent.to_report['aux']
+        if hps['feat_learning']!='rnd':
+            self.agent.to_report['aux'] = tf.reduce_mean(self.feature_extractor.loss)
+            self.agent.total_loss += self.agent.to_report['aux']
         self.agent.to_report['dyn_loss'] = tf.reduce_mean(self.dynamics.loss)
         self.agent.total_loss += self.agent.to_report['dyn_loss']
         self.agent.to_report['feat_var'] = tf.reduce_mean(tf.nn.moments(self.feature_extractor.features, [0, 1])[1])
@@ -170,9 +172,9 @@ def make_env_all_params(rank, add_monitor, args):
             env = make_robo_hockey()
     elif args["env_kind"] == "my_games":
         env = gym.make(args['env'])
-        env = MaxAndSkipEnv(env, skip=4)
+        env = MaxAndSkipEnv(env, skip=2)
         env = WarpFrame(env)
-        env = FrameStack(env, 4)
+        env = FrameStack(env, 2)
 
     if add_monitor:
         env = Monitor(env, osp.join(logger.get_dir(), '%.2i' % rank))
@@ -207,8 +209,8 @@ def add_environments_params(parser):
 def add_optimization_params(parser):
     parser.add_argument('--lambda', type=float, default=0.95)
     parser.add_argument('--gamma', type=float, default=0.99)
-    parser.add_argument('--nminibatches', type=int, default=32)
-    parser.add_argument('--norm_adv', type=int, default=1)
+    parser.add_argument('--nminibatches', type=int, default=16)
+    parser.add_argument('--norm_adv', type=int, default=0)
     parser.add_argument('--norm_rew', type=int, default=0)
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--ent_coeff', type=float, default=0.001)
@@ -239,8 +241,8 @@ if __name__ == '__main__':
     parser.add_argument('--ext_coeff', type=float, default=1.00)
     parser.add_argument('--int_coeff', type=float, default=0.5)
     parser.add_argument('--layernorm', type=int, default=0)
-    parser.add_argument('--feat_learning', type=str, default='idf',
-                        choices=["none", "idf", "vaesph", "vaenonsph", "pix2pix"])
+    parser.add_argument('--feat_learning', type=str, default='rnd',
+                        choices=["none", "idf", "rnd", vaesph", "vaenonsph", "pix2pix"])
 
     args = parser.parse_args()
 
