@@ -79,7 +79,7 @@ class RandomNetworkDistillation(FeatureExtractor):
         self.next_features = self.get_features(self.next_ob, reuse=False, scope="target_features")
             
 
-    def get_features(self, x, scope, reuse):
+    def get_features(self, x, reuse, scope):
         nl = tf.nn.leaky_relu
         x_has_timesteps = (x.get_shape().ndims == 5)
         if x_has_timesteps:
