@@ -76,8 +76,8 @@ class RandomNetworkDistillation(FeatureExtractor):
                                               features_shared_with_policy=features_shared_with_policy,
                                               feat_dim=feat_dim, layernormalize=layernormalize)
 
-            self.features = self.get_features(self.next_ob, reuse=False, scope="pred_features")
-            self.next_features = self.get_features(self.next_ob, reuse=False, scope="features")
+        self.features = self.get_features(self.next_ob, reuse=False, scope="pred_features")
+        self.next_features = self.get_features(self.next_ob, reuse=False, scope="features")
             
 
     def get_features(self, x, scope, reuse):
