@@ -72,29 +72,26 @@ class InverseDynamics(FeatureExtractor):
 class RandomNetworkDistillation(FeatureExtractor):
     def __init__(self, policy, features_shared_with_policy, feat_dim=None, layernormalize=None, 
             scope="random_network_distillation"):
-        self.scope = scope
-        self.features_shared_with_policy = features_shared_with_policy
-        self.feat_dim = feat_dim
-        self.layernormalize = layernormalize
-        self.policy = policy
-        self.hidsize = policy.hidsize
-        self.ob_space = policy.ob_space
-        self.ac_space = policy.ac_space
-        self.obs = self.policy.ph_ob
-        self.ob_mean = self.policy.ob_mean
-        self.ob_std = self.policy.ob_std
-        with tf.variable_scope(scope):
-            self.last_ob = tf.placeholder(dtype=tf.int32,
-                                          shape=(None, 1) + self.ob_space.shape, name='last_ob')
-            self.next_ob = tf.concat([self.obs[:, 1:], self.last_ob], 1)
+        super(InverseDynamics, self).__init__(scope="inverse_dynamics", policy=policy,
+                                              features_shared_with_policy=features_shared_with_policy,
+                                              feat_dim=feat_dim, layernormalize=layernormalize)
 
-            self.features = self.get_features(self.next_ob, reuse=False)
-            self.next_features = self.get_features(self.next_ob, reuse=False)
+            self.features = self.get_features(self.next_ob, reuse=False, scope="pred_features")
+            self.next_features = self.get_features(self.next_ob, reuse=False, scope="features")
             
-            self.ac = self.policy.ph_ac
-            self.scope = scope
 
-            self.loss = self.get_loss()
+    def get_features(self, x, scope, reuse):
+        nl = tf.nn.leaky_relu
+        x_has_timesteps = (x.get_shape().ndims == 5)
+        if x_has_timesteps:
+            sh = tf.shape(x)
+            x = flatten_two_dims(x)
+        with tf.variable_scope(self.scope + "_" + scope, reuse=reuse):
+            x = (tf.to_float(x) - self.ob_mean) / self.ob_std
+            x = small_convnet(x, nl=nl, feat_dim=self.feat_dim, last_nl=None, layernormalize=self.layernormalize)
+        if x_has_timesteps:
+            x = unflatten_first_dim(x, sh)
+        return x
 
     def get_loss(self):
         return tf.zeros((), dtype=tf.float32)
