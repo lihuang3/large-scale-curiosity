@@ -74,9 +74,9 @@ class RandomNetworkDistillation(FeatureExtractor):
         super(RandomNetworkDistillation, self).__init__(scope="random_network_distillation", policy=policy,
                                               features_shared_with_policy=features_shared_with_policy,
                                               feat_dim=feat_dim, layernormalize=layernormalize)
-            self.last_ob = tf.placeholder(dtype=tf.int32,
+        self.last_ob = tf.placeholder(dtype=tf.int32,
                                           shape=(None, 1) + self.ob_space.shape, name='last_ob')
-            self.next_ob = tf.concat([self.obs[:, 1:], self.last_ob], 1)
+        self.next_ob = tf.concat([self.obs[:, 1:], self.last_ob], 1)
         self.features = self.get_features(self.next_obs, reuse=False)
         self.next_features = self.get_features(self.next_obs, reuse=False)
 
