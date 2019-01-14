@@ -19,10 +19,10 @@ from baselines.bench import Monitor
 from atari_wrappers import *
 from mpi4py import MPI
 
-from auxiliary_tasks import FeatureExtractor, InverseDynamics, VAE, JustPixels
+from auxiliary_tasks import FeatureExtractor, InverseDynamics, RandomNetworkDistillation, VAE, JustPixels
 from cnn_policy import CnnPolicy
 from cppo_agent import PpoOptimizer
-from dynamics import Dynamics, UNet
+from dynamics import Dynamics, RNDDyn, UNet
 from utils import random_agent_ob_mean_std
 from wrappers import MontezumaInfoWrapper, make_mario_env, make_robo_pong, make_robo_hockey, \
     make_multi_pong, AddRandomStateToInfo, MaxAndSkipEnv, ProcessFrame84, ExtraTimeLimit
