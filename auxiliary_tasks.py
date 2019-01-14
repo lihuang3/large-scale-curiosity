@@ -70,15 +70,33 @@ class InverseDynamics(FeatureExtractor):
             return idfpd.neglogp(self.ac)
 
 class RandomNetworkDistillation(FeatureExtractor):
-    def __init__(self, policy, features_shared_with_policy, feat_dim=None, layernormalize=None):
-        super(RandomNetworkDistillation, self).__init__(scope="random_network_distillation", policy=policy,
-                                              features_shared_with_policy=features_shared_with_policy,
-                                              feat_dim=feat_dim, layernormalize=layernormalize)
-        self.last_ob = tf.placeholder(dtype=tf.int32,
+    def __init__(self, policy, features_shared_with_policy, feat_dim=None, layernormalize=None, 
+            scope="random_network_distillation"):
+        self.scope = scope
+        self.features_shared_with_policy = features_shared_with_policy
+        self.feat_dim = feat_dim
+        self.layernormalize = layernormalize
+        self.policy = policy
+        self.hidsize = policy.hidsize
+        self.ob_space = policy.ob_space
+        self.ac_space = policy.ac_space
+        self.obs = self.policy.ph_ob
+        self.ob_mean = self.policy.ob_mean
+        self.ob_std = self.policy.ob_std
+        with tf.variable_scope(scope):
+            self.last_ob = tf.placeholder(dtype=tf.int32,
                                           shape=(None, 1) + self.ob_space.shape, name='last_ob')
-        self.next_ob = tf.concat([self.obs[:, 1:], self.last_ob], 1)
-        self.features = self.get_features(self.next_obs, reuse=False)
-        self.next_features = self.get_features(self.next_obs, reuse=False)
+            self.next_ob = tf.concat([self.obs[:, 1:], self.last_ob], 1)
+
+            self.features = self.get_features(self.next_ob, reuse=False)
+            self.next_features = self.get_features(self.next_ob, reuse=False)
+            
+            self.next_features = tf.concat([self.features[:, 1:], self.last_features], 1)
+
+            self.ac = self.policy.ph_ac
+            self.scope = scope
+
+            self.loss = self.get_loss()
 
     def get_loss(self):
         return tf.zeros((), dtype=tf.float32)
