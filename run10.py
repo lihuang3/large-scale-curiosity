@@ -72,13 +72,14 @@ class Trainer(object):
                                                         features_shared_with_policy=False,
                                                         feat_dim=512,
                                                         layernormalize=hps['layernorm'])
-
-        if hps['feat_learning'] != 'pix2pix' or 'rnd':
-            self.dynamics = Dynamics  
-        elif hps['feat_learning']=='rnd': 
+            
+        if hps['feat_learning']=='rnd': 
             self.dynamics = RNDDyn 
-        else: 
+        elif hps['feat_learning'] == 'pix2pix': 
             self.dynamics = UNet
+        else:
+            self.dynamics = Dynamics  
+            
         self.dynamics = self.dynamics(auxiliary_task=self.feature_extractor,
                                       predict_from_pixels=hps['dyn_from_pixels'],
                                       feat_dim=512)
