@@ -115,7 +115,7 @@ class Trainer(object):
     def _set_env_vars(self):
         env = self.make_env(0, add_monitor=False)
         self.ob_space, self.ac_space = env.observation_space, env.action_space
-        self.ob_mean, self.ob_std = random_agent_ob_mean_std(env, nsteps=10000)
+        self.ob_mean, self.ob_std = random_agent_ob_mean_std(env, nsteps=2000)
         del env
         self.envs = [functools.partial(self.make_env, i) for i in range(self.envs_per_process)]
 
@@ -195,7 +195,7 @@ def get_experiment_environment(**args):
     set_global_seeds(process_seed)
     setup_mpi_gpus()
 
-    logger_context = logger.scoped_configure(dir=None,
+    logger_context = logger.scoped_configure(dir=args['env'],
                                              format_strs=['stdout', 'log',
                                                           'csv'] if MPI.COMM_WORLD.Get_rank() == 0 else ['log'])
     tf_context = setup_tensorflow_session()
@@ -246,7 +246,7 @@ if __name__ == '__main__':
     parser.add_argument('--ext_coeff', type=float, default=1.00)
     parser.add_argument('--int_coeff', type=float, default=0.5)
     parser.add_argument('--layernorm', type=int, default=0)
-    parser.add_argument('--feat_learning', type=str, default='rnd',
+    parser.add_argument('--feat_learning', type=str, default='idf',
                         choices=["none", "idf", "rnd", "vaesph", "vaenonsph", "pix2pix"])
 
     args = parser.parse_args()

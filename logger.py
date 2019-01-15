@@ -346,14 +346,17 @@ class Logger(object):
             if isinstance(fmt, SeqWriter):
                 fmt.writeseq(map(str, args))
 
-def configure(dir=None, format_strs=None):
+def configure(dir=None, logdir='logs', format_strs=None):
+    # if dir is None:
+    #     dir = os.getenv('OPENAI_LOGDIR')
     if dir is None:
-        dir = os.getenv('OPENAI_LOGDIR')
-    if dir is None:
-        dir = osp.join(ROOT_DIR, 'tmp',
+        dir = osp.join(ROOT_DIR, logdir,
                        datetime.datetime.now().strftime("openai-%Y-%m-%d-%H-%M-%S-%f"))
         # dir = osp.join(tempfile.gettempdir(),
         #     datetime.datetime.now().strftime("openai-%Y-%m-%d-%H-%M-%S-%f"))
+    else:
+        dir = osp.join(ROOT_DIR, logdir, dir,
+                       datetime.datetime.now().strftime("openai-%Y-%m-%d-%H-%M-%S-%f"))
 
     assert isinstance(dir, str)
     os.makedirs(dir, exist_ok=True)
@@ -488,7 +491,7 @@ def read_tb(path):
     return pandas.DataFrame(data, columns=tags)
 
 # configure the default logger on import
-_configure_default_logger()
+# _configure_default_logger()
 
 if __name__ == "__main__":
     _demo()
