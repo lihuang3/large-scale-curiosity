@@ -134,15 +134,27 @@ class PpoOptimizer(object):
 
     def update(self):
         # Rewards normalization
+        # if self.normrew:
+        #     rffs = np.array([self.rff.update(rew) for rew in self.rollout.buf_rews.T])
+        #     rffs_mean, rffs_std, rffs_count = mpi_moments(rffs.ravel())
+        #     self.rff_rms.update_from_moments(rffs_mean, rffs_std ** 2, rffs_count)
+        #     rews = self.rollout.buf_rews / np.sqrt(self.rff_rms.var)
+        
+        # Intrinsic Rewards Normalization
         if self.normrew:
-            rffs = np.array([self.rff.update(rew) for rew in self.rollout.buf_rews.T])
-            rffs_mean, rffs_std, rffs_count = mpi_moments(rffs.ravel())
-            self.rff_rms.update_from_moments(rffs_mean, rffs_std ** 2, rffs_count)
-            rews = self.rollout.buf_rews / np.sqrt(self.rff_rms.var)
+            rffs_int = np.array([self.rff.update(rew) for rew in self.rollout.buf_int_rews.T])
+            self.rff_rms.update(rffs_int.ravel())        
+            int_rews = self.rollout.buf_int_rews / np.sqrt(self.rff_rms.var)
         else:
-            rews = np.copy(self.rollout.buf_rews)
+            int_rews = np.copy(self.rollout.buf_int_rews)
+        
+        mean_int_rew = np.mean(int_rews)
+        max_int_rew = np.max(int_rews)
+        
+        rews = self.rollouts.buf_rews = self.rollouts.reward_fun(int_rew=int_rews, ext_rew=self.rollouts.buf_ext_rews)
         self.calculate_advantages(rews=rews, use_news=self.use_news, gamma=self.gamma, lam=self.lam)
-
+        import pdb
+        pdb.set_trace()
         info = dict(
             advmean=self.buf_advs.mean(),
             advstd=self.buf_advs.std(),
@@ -152,7 +164,9 @@ class PpoOptimizer(object):
             vpredstd=self.rollout.buf_vpreds.std(),
             ev=explained_variance(self.rollout.buf_vpreds.ravel(), self.buf_rets.ravel()),
             rew_mean=np.mean(self.rollout.buf_rews),
-            recent_best_ext_ret=self.rollout.current_max
+            recent_best_ext_ret=self.rollout.current_max,
+            rew_int_mean = mean_int_rew,
+            recent_best_int_int_rew = max_int_rew
         )
         if self.rollout.best_ext_ret is not None:
             info['best_ext_ret'] = self.rollout.best_ext_ret

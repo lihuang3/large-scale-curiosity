@@ -29,6 +29,7 @@ class Rollout(object):
         self.buf_nlps = np.empty((nenvs, self.nsteps), np.float32)
         self.buf_rews = np.empty((nenvs, self.nsteps), np.float32)
         self.buf_ext_rews = np.empty((nenvs, self.nsteps), np.float32)
+        self.buf_int_rews = np.empty((nenvs, self.nsteps), np.float32)
         self.buf_acs = np.empty((nenvs, self.nsteps, *self.ac_space.shape), self.ac_space.dtype)
         self.buf_obs = np.empty((nenvs, self.nsteps, *self.ob_space.shape), self.ob_space.dtype)
         self.buf_obs_last = np.empty((nenvs, self.nsegs_per_env, *self.ob_space.shape), np.float32)
@@ -62,7 +63,8 @@ class Rollout(object):
         int_rew = self.dynamics.calculate_loss(ob=self.buf_obs,
                                                last_ob=self.buf_obs_last,
                                                acs=self.buf_acs)
-        self.buf_rews[:] = self.reward_fun(int_rew=int_rew, ext_rew=self.buf_ext_rews)
+        self.buf_int_rews[:] = int_rew
+        # self.reward_fun(int_rew=int_rew, ext_rew=self.buf_ext_rews)
 
 
     def rollout_step(self):

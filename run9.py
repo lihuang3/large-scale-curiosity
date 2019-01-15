@@ -73,12 +73,13 @@ class Trainer(object):
                                                         feat_dim=512,
                                                         layernormalize=hps['layernorm'])
 
-        if hps['feat_learning'] != 'pix2pix' or 'rnd':
-            self.dynamics = Dynamics  
-        elif hps['feat_learning']=='rnd': 
+        if hps['feat_learning']=='rnd': 
             self.dynamics = RNDDyn 
-        else: 
+        elif hps['feat_learning'] == 'pix2pix': 
             self.dynamics = UNet
+        else:
+            self.dynamics = Dynamics
+              
         self.dynamics = self.dynamics(auxiliary_task=self.feature_extractor,
                                       predict_from_pixels=hps['dyn_from_pixels'],
                                       feat_dim=512)
@@ -216,7 +217,7 @@ def add_optimization_params(parser):
     parser.add_argument('--gamma', type=float, default=0.99)
     parser.add_argument('--nminibatches', type=int, default=16)
     parser.add_argument('--norm_adv', type=int, default=0)
-    parser.add_argument('--norm_rew', type=int, default=0)
+    parser.add_argument('--norm_rew', type=int, default=1)
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--ent_coeff', type=float, default=0.001)
     parser.add_argument('--nepochs', type=int, default=3)
