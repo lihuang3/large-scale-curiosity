@@ -116,7 +116,7 @@ class Trainer(object):
     def _set_env_vars(self):
         env = self.make_env(0, add_monitor=False)
         self.ob_space, self.ac_space = env.observation_space, env.action_space
-        self.ob_mean, self.ob_std = random_agent_ob_mean_std(env, nsteps=10000)
+        self.ob_mean, self.ob_std = random_agent_ob_mean_std(env, nsteps=100)
         del env
         self.envs = [functools.partial(self.make_env, i) for i in range(self.envs_per_process)]
 
@@ -227,7 +227,7 @@ def add_optimization_params(parser):
 def add_rollout_params(parser):
     parser.add_argument('--nsteps_per_seg', type=int, default=2000)
     parser.add_argument('--nsegs_per_env', type=int, default=1)
-    parser.add_argument('--envs_per_process', type=int, default=128)
+    parser.add_argument('--envs_per_process', type=int, default=1)
     parser.add_argument('--nlumps', type=int, default=1)
 
 

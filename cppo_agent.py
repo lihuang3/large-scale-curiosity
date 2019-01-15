@@ -151,7 +151,7 @@ class PpoOptimizer(object):
         mean_int_rew = np.mean(int_rews)
         max_int_rew = np.max(int_rews)
         
-        rews = self.rollouts.buf_rews = self.rollouts.reward_fun(int_rew=int_rews, ext_rew=self.rollouts.buf_ext_rews)
+        rews = self.rollout.buf_rews = self.rollout.reward_fun(int_rew=int_rews, ext_rew=self.rollout.buf_ext_rews)
         self.calculate_advantages(rews=rews, use_news=self.use_news, gamma=self.gamma, lam=self.lam)
         import pdb
         pdb.set_trace()
@@ -166,7 +166,7 @@ class PpoOptimizer(object):
             rew_mean=np.mean(self.rollout.buf_rews),
             recent_best_ext_ret=self.rollout.current_max,
             rew_int_mean = mean_int_rew,
-            recent_best_int_int_rew = max_int_rew
+            recent_best_int_rew = max_int_rew
         )
         if self.rollout.best_ext_ret is not None:
             info['best_ext_ret'] = self.rollout.best_ext_ret
