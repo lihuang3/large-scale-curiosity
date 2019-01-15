@@ -91,6 +91,8 @@ class Rollout(object):
 
             acs, vpreds, nlps = self.policy.get_ac_value_nlp(obs)
             self.env_step(l, acs)
+            # if play==True, render!
+            # self.env[l].render()
 
             # self.prev_feat[l] = dyn_feat
             # self.prev_acs[l] = acs

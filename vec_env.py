@@ -154,6 +154,10 @@ class ShmemVecEnv(VecEnv):
         for pipe, act in zip(self.parent_pipes, actions):
             pipe.send(('step', act))
 
+    def render(self):
+        for pipe in self.parent_pipes:
+            pipe.send(('render', None))
+            
     def step_wait(self):
         outs = [pipe.recv() for pipe in self.parent_pipes]
         obs, rews, dones, infos = zip(*outs)
@@ -212,6 +216,8 @@ def _subproc_worker(pipe, parent_pipe, env_fn_wrapper, obs_buf, obs_shape):
                 if done:
                     obs = env.reset()
                 pipe.send((_write_obs(obs), reward, done, info))
+            elif cmd == 'render':
+                env.render()
             elif cmd == 'close':
                 pipe.send(None)
                 break
