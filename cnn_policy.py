@@ -37,6 +37,7 @@ class CnnPolicy(object):
                 x = self.flat_features
                 pdparam = fc(x, name='pd', units=pdparamsize, activation=None)
                 vpred = fc(x, name='value_function_output', units=1, activation=None)
+
             pdparam = unflatten_first_dim(pdparam, sh)
             self.vpred = unflatten_first_dim(vpred, sh)[:, :, 0]
             self.pd = pd = self.ac_pdtype.pdfromflat(pdparam)

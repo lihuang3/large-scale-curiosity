@@ -116,7 +116,7 @@ class Trainer(object):
     def _set_env_vars(self):
         env = self.make_env(0, add_monitor=False)
         self.ob_space, self.ac_space = env.observation_space, env.action_space
-        self.ob_mean, self.ob_std = random_agent_ob_mean_std(env, nsteps=100)
+        self.ob_mean, self.ob_std = random_agent_ob_mean_std(env, nsteps=10000)
         del env
         self.envs = [functools.partial(self.make_env, i) for i in range(self.envs_per_process)]
 
@@ -180,7 +180,7 @@ def make_env_all_params(rank, add_monitor, args):
         env = gym.make(args['env'])
         env = MaxAndSkipEnv(env, skip=3)
         env = WarpFrame(env, width=120, height=120)
-        env = FrameStack(env, 3)
+        env = FrameStack(env, 2)
 
     if add_monitor:
         env = Monitor(env, osp.join(logger.get_dir(), '%.2i' % rank))

@@ -44,7 +44,7 @@ class PpoOptimizer(object):
             self.use_news = use_news
             self.ext_coeff = ext_coeff
             self.int_coeff = int_coeff
-            self.ph_adv = tf.placeholder(tf.float32, [None, None])
+            self.ph_adv = tf.placeholder(tf.float32, [None, None])        
             self.ph_ret = tf.placeholder(tf.float32, [None, None])
             self.ph_rews = tf.placeholder(tf.float32, [None, None])
             self.ph_oldnlp = tf.placeholder(tf.float32, [None, None])
@@ -53,9 +53,10 @@ class PpoOptimizer(object):
             self.ph_cliprange = tf.placeholder(tf.float32, [])
             neglogpac = self.stochpol.pd.neglogp(self.stochpol.ph_ac)
             entropy = tf.reduce_mean(self.stochpol.pd.entropy())
+            
             vpred = self.stochpol.vpred
-
             vf_loss = 0.5 * tf.reduce_mean((vpred - self.ph_ret) ** 2)
+
             ratio = tf.exp(self.ph_oldnlp - neglogpac)  # p_new / p_old
             negadv = - self.ph_adv
             pg_losses1 = negadv * ratio
@@ -153,8 +154,7 @@ class PpoOptimizer(object):
         
         rews = self.rollout.buf_rews = self.rollout.reward_fun(int_rew=int_rews, ext_rew=self.rollout.buf_ext_rews)
         self.calculate_advantages(rews=rews, use_news=self.use_news, gamma=self.gamma, lam=self.lam)
-        import pdb
-        pdb.set_trace()
+        
         info = dict(
             advmean=self.buf_advs.mean(),
             advstd=self.buf_advs.std(),
