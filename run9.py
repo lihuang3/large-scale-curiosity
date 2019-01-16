@@ -178,9 +178,9 @@ def make_env_all_params(rank, add_monitor, args):
             env = make_robo_hockey()
     elif args["env_kind"] == "my_games":
         env = gym.make(args['env'])
-        env = MaxAndSkipEnv(env, skip=2)
+        env = MaxAndSkipEnv(env, skip=3)
         env = WarpFrame(env, width=120, height=120)
-        env = FrameStack(env, 2)
+        env = FrameStack(env, 3)
 
     if add_monitor:
         env = Monitor(env, osp.join(logger.get_dir(), '%.2i' % rank))
@@ -227,7 +227,7 @@ def add_optimization_params(parser):
 def add_rollout_params(parser):
     parser.add_argument('--nsteps_per_seg', type=int, default=2000)
     parser.add_argument('--nsegs_per_env', type=int, default=1)
-    parser.add_argument('--envs_per_process', type=int, default=1)
+    parser.add_argument('--envs_per_process', type=int, default=128)
     parser.add_argument('--nlumps', type=int, default=1)
 
 
