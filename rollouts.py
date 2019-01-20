@@ -90,7 +90,14 @@ class Rollout(object):
             sli = slice(l * self.lump_stride, (l + 1) * self.lump_stride)
 
             acs, vpreds, nlps = self.policy.get_ac_value_nlp(obs)
+            
+            try:
+                acs[0] = infos[0]['ac']
+            except KeyError:
+                pass    
+            
             self.env_step(l, acs)
+
             # if play==True, render!
             # self.env[l].render()
 
