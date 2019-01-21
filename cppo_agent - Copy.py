@@ -65,8 +65,8 @@ class PpoOptimizer(object):
             
             if hps['num_vf']==2: 
                 # Separate vf_loss for intrinsic and extrinsic rewards
-                vf_loss_int = (0.5 * vf_coef) * tf.reduce_mean(tf.square(self.stochpol.vpred_int - self.ph_ret_int))
-                vf_loss_ext = (0.5 * vf_coef) * tf.reduce_mean(tf.square(self.stochpol.vpred_ext - self.ph_ret_ext))
+                vf_loss_int = 0.5 * tf.reduce_mean(tf.square(self.stochpol.vpred_int - self.ph_ret_int))
+                vf_loss_ext = 0.5 * tf.reduce_mean(tf.square(self.stochpol.vpred_ext - self.ph_ret_ext))
                 vf_loss = vf_loss_int + vf_loss_ext
             else
                 vf_loss = 0.5 * tf.reduce_mean((vpred - self.ph_ret) ** 2)
