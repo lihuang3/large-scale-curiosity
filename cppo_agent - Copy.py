@@ -48,9 +48,7 @@ class PpoOptimizer(object):
             self.int_coeff = int_coeff
 
             self.ph_adv = tf.placeholder(tf.float32, [None, None])        
-            self.ph_adv_int = tf.placeholder(tf.float32, [None, None])        
-            self.ph_adv_ext = tf.placeholder(tf.float32, [None, None])        
-
+     
             self.ph_ret_int = tf.placeholder(tf.float32, [None, None])            
             self.ph_ret_ext = tf.placeholder(tf.float32, [None, None])            
             self.ph_ret = tf.placeholder(tf.float32, [None, None])
@@ -166,6 +164,7 @@ class PpoOptimizer(object):
         ext_rews = self.rollout.buf_ext_rews
 
         nsteps = self.rollout.nsteps
+
         # If separate value fcn are used
         if self.hps['num_vf']==2:
             #Calculate intrinsic returns and advantages.
@@ -211,18 +210,30 @@ class PpoOptimizer(object):
         
         info = dict(
             advmean=self.buf_advs.mean(),
-            advstd=self.buf_advs.std(),
-            retmean=self.buf_rets.mean(),
-            retstd=self.buf_rets.std(),
-            vpredmean=self.rollout.buf_vpreds.mean(),
-            vpredstd=self.rollout.buf_vpreds.std(),
-            ev=explained_variance(self.rollout.buf_vpreds.ravel(), self.buf_rets.ravel()),
-            rew_mean=np.mean(self.rollout.buf_rews),
+            advstd=self.buf_advs.std(),  
             recent_best_ext_ret=self.rollout.current_max,
-            rew_int_mean = mean_int_rew,
-            recent_best_int_rew = max_int_rew
         )
 
+        if self.hps['num_vf'] ==2:
+            info['retmean_int']=self.buf_rets_int.mean()
+            info['retmean_ext']=self.buf_rets_ext.mean()
+            info['retstd_int']=self.buf_rets_int.std()
+            info['retstd_ext']=self.buf_rets_ext.std()
+            info['vpredmean_int']=self.buf_vpreds_int.mean()
+            info['vpredmean_ext']=self.buf_vpreds_ext.mean()
+            info['vpredstd_int']=self.buf_vpreds_int.std()
+            info['vpredstd_ext']=self.buf_vpreds_ext.std()
+            info['ev_int']=explained_variance(self.rollout.buf_vpreds_int.ravel(), self.buf_rets_int.ravel())            
+            info['ev_ext']=explained_variance(self.rollout.buf_vpreds_ext.ravel(), self.buf_rets_ext.ravel())            
+            info['rew_int_mean']=mean_int_rew
+            info['recent_best_int_rew']=max_int_rew
+        else:
+            info['retmean']=self.buf_rets.mean()
+            info['retstd']=self.buf_rets.std()
+            info['vpredmean']=self.rollout.buf_vpreds.mean()
+            info['vpredstd']=self.rollout.buf_vpreds.std()
+            info['rew_mean']=np.mean(self.rollout.buf_rews)
+            info['ev']=explained_variance(self.rollout.buf_vpreds.ravel(), self.buf_rets.ravel())            
 
         if self.rollout.best_ext_ret is not None:
             info['best_ext_ret'] = self.rollout.best_ext_ret
@@ -240,21 +251,33 @@ class PpoOptimizer(object):
                 return x
             sh = x.shape
             return x.reshape((sh[0] * self.nsegs_per_env, self.nsteps_per_seg) + sh[2:])
-
+        
+        #Create feed_dict for optimization.
         ph_buf = [
-            (self.stochpol.ph_ac, resh(self.rollout.buf_acs)),
-            (self.ph_rews, resh(self.rollout.buf_rews)),
-            (self.ph_oldvpred, resh(self.rollout.buf_vpreds)),
-            (self.ph_oldnlp, resh(self.rollout.buf_nlps)),
-            (self.stochpol.ph_ob, resh(self.rollout.buf_obs)),
-            (self.ph_ret, resh(self.buf_rets)),
-            (self.ph_adv, resh(self.buf_advs)),
-        ]
+                (self.stochpol.ph_ac, resh(self.rollout.buf_acs)),
+                (self.ph_oldnlp, resh(self.rollout.buf_nlps)),
+                (self.stochpol.ph_ob, resh(self.rollout.buf_obs)),
+                (self.ph_adv, resh(self.buf_advs)),
+                ]
+
+        if self.hps['num_vf']==2:
+            ph_buf.extend([                
+                (self.ph_ret_int, resh(self.buf_rets_int)),
+                (self.ph_ret_ext, resh(self.buf_rets_ext)),
+            ])       
+        else:
+            ph_buf.extend([
+                (self.ph_rews, resh(self.rollout.buf_rews)),
+                (self.ph_oldvpred, resh(self.rollout.buf_vpreds)),
+                (self.ph_ret, resh(self.buf_rets)),
+            ])
 
         ph_buf.extend([
             (self.dynamics.last_ob,
              self.rollout.buf_obs_last.reshape([self.nenvs * self.nsegs_per_env, 1, *self.ob_space.shape]))
         ])
+
+        #Optimizes on current data for several epochs.
         mblossvals = []
 
         for _ in range(self.nepochs):
