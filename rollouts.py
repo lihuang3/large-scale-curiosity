@@ -102,8 +102,8 @@ class Rollout(object):
 
             if self.hps['num_vf']==2:
                 acs, vpreds_int, vpreds_ext, nlps = self.policy.get_ac_value_nlp_2vf(obs)
-                self.buf_vpreds_int[sli, t] = vpres_int
-                self.buf_vpreds_ext[sli, t] = vpres_ext
+                self.buf_vpreds_int[sli, t] = vpreds_int
+                self.buf_vpreds_ext[sli, t] = vpreds_ext
             else:
                 acs, vpreds, nlps = self.policy.get_ac_value_nlp(obs)
                 self.buf_vpreds[sli, t] = vpreds
