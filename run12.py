@@ -52,6 +52,7 @@ class Trainer(object):
         self._set_env_vars()
 
         self.policy = CnnPolicy(
+            hps=hps,
             scope='pol',
             ob_space=self.ob_space,
             ac_space=self.ac_space,
@@ -85,12 +86,14 @@ class Trainer(object):
                                       feat_dim=512)
 
         self.agent = PpoOptimizer(
+            hps=hps,
             scope='ppo',
             ob_space=self.ob_space,
             ac_space=self.ac_space,
             stochpol=self.policy,
             use_news=hps['use_news'],
             gamma=hps['gamma'],
+            gamma_ext=hps['gamma_ext'],
             lam=hps["lambda"],
             nepochs=hps['nepochs'],
             nminibatches=hps['nminibatches'],
@@ -215,6 +218,7 @@ def add_environments_params(parser):
 def add_optimization_params(parser):
     parser.add_argument('--lambda', type=float, default=0.95)
     parser.add_argument('--gamma', type=float, default=0.99)
+    parser.add_argument('--gamma_ext', type=float, default=0.99)    
     parser.add_argument('--nminibatches', type=int, default=16)
     parser.add_argument('--norm_adv', type=int, default=0)
     parser.add_argument('--norm_rew', type=int, default=1)
@@ -249,6 +253,7 @@ if __name__ == '__main__':
     parser.add_argument('--layernorm', type=int, default=0)
     parser.add_argument('--feat_learning', type=str, default='rnd',
                         choices=["none", "idf", "rnd", "vaesph", "vaenonsph", "pix2pix"])
+    parser.add_argument('--num_vf', type=int, default=1, choices=[0,1])
 
     args = parser.parse_args()
 
