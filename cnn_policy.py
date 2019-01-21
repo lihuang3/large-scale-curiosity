@@ -79,7 +79,7 @@ class CnnPolicy(object):
         return a[:, 0], vpred[:, 0], nlp[:, 0]
     
     def get_ac_value_nlp_2vf(self, ob):
-        a, vpred_int, pred_ext, nlp = \
+        a, vpred_int, vpred_ext, nlp = \
             getsess().run([self.a_samp, self.vpred_int, self.vpred_ext, self.nlp_samp],
                           feed_dict={self.ph_ob: ob[:, None]})
         return a[:, 0], vpred_int[:,0], vpred_ext[:,0], nlp[:, 0]
