@@ -7,8 +7,9 @@ from recorder import Recorder
 
 
 class Rollout(object):
-    def __init__(self, ob_space, ac_space, nenvs, nsteps_per_seg, nsegs_per_env, nlumps, envs, policy,
+    def __init__(self, hps, ob_space, ac_space, nenvs, nsteps_per_seg, nsegs_per_env, nlumps, envs, policy,
                  int_rew_coeff, ext_rew_coeff, record_rollouts, dynamics):
+        self.hps = hps
         self.nenvs = nenvs
         self.nsteps_per_seg = nsteps_per_seg
         self.nsegs_per_env = nsegs_per_env
@@ -24,19 +25,29 @@ class Rollout(object):
         # self.reward_fun = lambda ext_rew, int_rew: ext_rew_coeff * np.clip(ext_rew, -1., 1.) + int_rew_coeff * int_rew
         self.reward_fun = lambda ext_rew, int_rew: ext_rew_coeff * ext_rew + int_rew_coeff * int_rew
 
-
         self.buf_vpreds = np.empty((nenvs, self.nsteps), np.float32)
+        # Separate value fcn for intrisic and extrinsic rewards respectively
+        self.buf_vpreds_int = np.empty((nenvs, self.nsteps), np.float32)
+        self.buf_vpreds_ext = np.empty((nenvs, self.nsteps), np.float32)
+
+
         self.buf_nlps = np.empty((nenvs, self.nsteps), np.float32)
         self.buf_rews = np.empty((nenvs, self.nsteps), np.float32)
+        
         self.buf_ext_rews = np.empty((nenvs, self.nsteps), np.float32)
         self.buf_int_rews = np.empty((nenvs, self.nsteps), np.float32)
+
         self.buf_acs = np.empty((nenvs, self.nsteps, *self.ac_space.shape), self.ac_space.dtype)
         self.buf_obs = np.empty((nenvs, self.nsteps, *self.ob_space.shape), self.ob_space.dtype)
         self.buf_obs_last = np.empty((nenvs, self.nsegs_per_env, *self.ob_space.shape), np.float32)
 
         self.buf_news = np.zeros((nenvs, self.nsteps), np.float32)
         self.buf_new_last = self.buf_news[:, 0, ...].copy()
+
         self.buf_vpred_last = self.buf_vpreds[:, 0, ...].copy()
+        # Separate value fcn for intrisic and extrinsic rewards respectively
+        self.buf_vpred_int_last = self.buf_vpreds_int[:, 0, ...].copy()       
+        self.buf_vpred_ext_last = self.buf_vpreds_ext[:, 0, ...].copy()
 
         self.env_results = [None] * self.nlumps
         # self.prev_feat = [None for _ in range(self.nlumps)]
@@ -89,15 +100,24 @@ class Rollout(object):
 
             sli = slice(l * self.lump_stride, (l + 1) * self.lump_stride)
 
-            acs, vpreds, nlps = self.policy.get_ac_value_nlp(obs)
-            
+            if self.hps['num_vf']==2:
+                acs, vpreds_int, vpreds_ext, nlps = self.policy.get_ac_value_nlp_2vf(obs)
+                self.buf_vpreds_int[sli, t] = vpres_int
+                self.buf_vpreds_ext[sli, t] = vpres_ext
+            else:
+                acs, vpreds, nlps = self.policy.get_ac_value_nlp(obs)
+                self.buf_vpreds[sli, t] = vpreds
+
+
+            # if step > max_episode_step and done = False,
+            # there is 10% possibility (i.e., infos[0]['ac'] assigned) that the episode does not reset but 
+            # continue to transfer learning 
             try:
                 acs[0] = infos[0]['ac']
             except KeyError:
                 pass    
             
             self.env_step(l, acs)
-
             # if play==True, render!
             # self.env[l].render()
 
@@ -105,7 +125,7 @@ class Rollout(object):
             # self.prev_acs[l] = acs
             self.buf_obs[sli, t] = obs
             self.buf_news[sli, t] = news
-            self.buf_vpreds[sli, t] = vpreds
+
             self.buf_nlps[sli, t] = nlps
             self.buf_acs[sli, t] = acs
             if t > 0:

@@ -5,7 +5,7 @@ from utils import getsess, small_convnet, activ, fc, flatten_two_dims, unflatten
 
 
 class CnnPolicy(object):
-    def __init__(self, hps, ob_space, ac_space, hidsize,
+    def __init__(self, ob_space, ac_space, hidsize,
                  ob_mean, ob_std, feat_dim, layernormalize, nl, scope="policy"):
         if layernormalize:
             print("Warning: policy is operating on top of layer-normed features. It might slow down the training.")
@@ -36,22 +36,10 @@ class CnnPolicy(object):
                 # x = fc(x, units=hidsize, activation=activ)
                 x = self.flat_features
                 pdparam = fc(x, name='pd', units=pdparamsize, activation=None)
-            
                 vpred = fc(x, name='value_function_output', units=1, activation=None)
-                
-                # Only evaluated when separate value fcns are used
-                vpred_int = fc(x, name='value_function_int', units=1, activation=None)
-                vpred_ext = fc(x, name='value_function_ext', units=1, activation=None)
-
-
 
             pdparam = unflatten_first_dim(pdparam, sh)
-            
             self.vpred = unflatten_first_dim(vpred, sh)[:, :, 0]
-            # Only evaluated when separate value fcns are used
-            self.vpred_int = unflatten_first_dim(vpred_int, sh)[:, :, 0]
-            self.vpred_ext = unflatten_first_dim(vpred_ext, sh)[:, :, 0]
-
             self.pd = pd = self.ac_pdtype.pdfromflat(pdparam)
             self.a_samp = pd.sample()
             self.entropy = pd.entropy()
@@ -77,9 +65,3 @@ class CnnPolicy(object):
             getsess().run([self.a_samp, self.vpred, self.nlp_samp],
                           feed_dict={self.ph_ob: ob[:, None]})
         return a[:, 0], vpred[:, 0], nlp[:, 0]
-    
-    def get_ac_value_nlp_2vf(self, ob):
-        a, vpred_int, pred_ext, nlp = \
-            getsess().run([self.a_samp, self.vpred_int, self.vpred_ext, self.nlp_samp],
-                          feed_dict={self.ph_ob: ob[:, None]})
-        return a[:, 0], vpred_int[:,0], vpred_ext[:,0], nlp[:, 0]

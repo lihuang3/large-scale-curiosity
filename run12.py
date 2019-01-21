@@ -208,7 +208,7 @@ def get_experiment_environment(**args):
 
 def add_environments_params(parser):
     # 'BreakoutNoFrameskip-v4'
-    parser.add_argument('--env', help='environment ID', default= 'Maze0110Env-v2',
+    parser.add_argument('--env', help='environment ID', default= 'Maze0110Env-v1',
                         type=str)
     parser.add_argument('--max-episode-steps', help='maximum number of timesteps for episode', default=None, type=int)
     parser.add_argument('--env_kind', type=str, default="my_games")
@@ -231,7 +231,7 @@ def add_optimization_params(parser):
 def add_rollout_params(parser):
     parser.add_argument('--nsteps_per_seg', type=int, default=2000)
     parser.add_argument('--nsegs_per_env', type=int, default=1)
-    parser.add_argument('--envs_per_process', type=int, default=128)
+    parser.add_argument('--envs_per_process', type=int, default=1)
     parser.add_argument('--nlumps', type=int, default=1)
 
 
@@ -253,7 +253,7 @@ if __name__ == '__main__':
     parser.add_argument('--layernorm', type=int, default=0)
     parser.add_argument('--feat_learning', type=str, default='rnd',
                         choices=["none", "idf", "rnd", "vaesph", "vaenonsph", "pix2pix"])
-    parser.add_argument('--num_vf', type=int, default=1, choices=[0,1])
+    parser.add_argument('--num_vf', type=int, default=2, choices=[0,1])
 
     args = parser.parse_args()
 
