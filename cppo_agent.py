@@ -68,7 +68,7 @@ class PpoOptimizer(object):
                 vf_loss_int = 0.5 * tf.reduce_mean(tf.square(self.stochpol.vpred_int - self.ph_ret_int))
                 vf_loss_ext = 0.5 * tf.reduce_mean(tf.square(self.stochpol.vpred_ext - self.ph_ret_ext))
                 vf_loss = vf_loss_int + vf_loss_ext
-            else
+            else:
                 vf_loss = 0.5 * tf.reduce_mean((vpred - self.ph_ret) ** 2)
 
             ratio = tf.exp(self.ph_oldnlp - neglogpac)  # p_new / p_old
