@@ -85,7 +85,7 @@ class RandomNetworkDistillation(FeatureExtractor):
         self.ob_std = self.policy.ob_std
         with tf.variable_scope(scope):
             self.last_ob = tf.placeholder(dtype=tf.int32,
-                                          shape=(None, 1) + self.ob_space.shape, name='last_ob')
+                                          shape=(None, None) + self.ob_space.shape, name='last_ob')
             self.next_ob = tf.concat([self.obs[:, 1:], self.last_ob], 1)
             
             self.features = self.get_features(self.next_ob, reuse=False, scope="pred_features")

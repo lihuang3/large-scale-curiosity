@@ -182,8 +182,8 @@ def make_env_all_params(rank, add_monitor, args):
     elif args["env_kind"] == "my_games":
         env = gym.make(args['env'])
         env = MaxAndSkipEnv(env, skip=3)
-        env = WarpFrame(env, width=120, height=120)
-        env = FrameStack(env, 2)
+        env = WarpFrame(env)
+        env = FrameStack(env, 3)
 
     if add_monitor:
         env = Monitor(env, osp.join(logger.get_dir(), '%.2i' % rank))
