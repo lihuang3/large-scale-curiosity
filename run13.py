@@ -208,7 +208,7 @@ def get_experiment_environment(**args):
 
 def add_environments_params(parser):
     # 'BreakoutNoFrameskip-v4'
-    parser.add_argument('--env', help='environment ID', default= 'Maze0110Env-v1',
+    parser.add_argument('--env', help='environment ID', default= 'Maze0110Env-v2',
                         type=str)
     parser.add_argument('--max-episode-steps', help='maximum number of timesteps for episode', default=None, type=int)
     parser.add_argument('--env_kind', type=str, default="my_games")
@@ -218,7 +218,7 @@ def add_environments_params(parser):
 def add_optimization_params(parser):
     parser.add_argument('--lambda', type=float, default=0.95)
     parser.add_argument('--gamma', type=float, default=0.99)
-    parser.add_argument('--gamma_ext', type=float, default=0.99)    
+    parser.add_argument('--gamma_ext', type=float, default=0.999)    
     parser.add_argument('--nminibatches', type=int, default=32)
     parser.add_argument('--norm_adv', type=int, default=0)
     parser.add_argument('--norm_rew', type=int, default=1)
@@ -249,7 +249,7 @@ if __name__ == '__main__':
     parser.add_argument('--dyn_from_pixels', type=int, default=0)
     parser.add_argument('--use_news', type=int, default=0)
     parser.add_argument('--ext_coeff', type=float, default=1.00)
-    parser.add_argument('--int_coeff', type=float, default=0.5)
+    parser.add_argument('--int_coeff', type=float, default=0.25)
     parser.add_argument('--layernorm', type=int, default=0)
     parser.add_argument('--feat_learning', type=str, default='rnd',
                         choices=["none", "idf", "rnd", "vaesph", "vaenonsph", "pix2pix"])

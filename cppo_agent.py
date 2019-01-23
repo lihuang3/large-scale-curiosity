@@ -184,8 +184,6 @@ class PpoOptimizer(object):
 
             for t in range(nsteps - 1, -1, -1):  # nsteps-2 ... 0
                 nextnew = self.rollout.buf_news[:, t + 1] if t + 1 < nsteps else self.rollout.buf_new_last
-                if not self.use_news:
-                    nextnew = 0
                 nextvals = self.rollout.buf_vpreds_ext[:, t + 1] if t + 1 < nsteps else self.rollout.buf_vpred_ext_last
                 nextnotnew = 1 - nextnew
                 delta = ext_rews[:, t] + self.gamma_ext * nextvals * nextnotnew - self.rollout.buf_vpreds_ext[:, t]
