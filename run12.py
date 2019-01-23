@@ -146,12 +146,17 @@ class Trainer(object):
                 logger.logkvs(info['update'])
                 logger.dumpkvs()
 
+                print('eplen = ', info['update']['eplen'])
                 
                 if info['update']['n_updates'] % 10 == 0 or info['update']['n_updates']==1: 
                     weights_index =  info['update']['n_updates']             
                     savepath = osp.join(checkdir, '%.5i'% weights_index)
                     print('Saving to', savepath)
                     self.save(savepath)
+                    
+                    if info['update']['eplen'] < 950.0:
+                        print('final eplen = ', info['update']['eplen'])
+                        break 
 
             if self.agent.rollout.stats['tcount'] > self.num_timesteps:
                 break
@@ -182,8 +187,8 @@ def make_env_all_params(rank, add_monitor, args):
     elif args["env_kind"] == "my_games":
         env = gym.make(args['env'])
         env = MaxAndSkipEnv(env, skip=3)
-        env = WarpFrame(env)
-        env = FrameStack(env, 3)
+        env = WarpFrame(env, width=120, height=120)
+        env = FrameStack(env, 2)
 
     if add_monitor:
         env = Monitor(env, osp.join(logger.get_dir(), '%.2i' % rank))
@@ -219,19 +224,19 @@ def add_optimization_params(parser):
     parser.add_argument('--lambda', type=float, default=0.95)
     parser.add_argument('--gamma', type=float, default=0.99)
     parser.add_argument('--gamma_ext', type=float, default=0.99)    
-    parser.add_argument('--nminibatches', type=int, default=32)
+    parser.add_argument('--nminibatches', type=int, default=16)
     parser.add_argument('--norm_adv', type=int, default=0)
     parser.add_argument('--norm_rew', type=int, default=1)
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--ent_coeff', type=float, default=0.001)
-    parser.add_argument('--nepochs', type=int, default=4)
+    parser.add_argument('--nepochs', type=int, default=3)
     parser.add_argument('--num_timesteps', type=int, default=int(3e8))
 
 
 def add_rollout_params(parser):
     parser.add_argument('--nsteps_per_seg', type=int, default=2000)
     parser.add_argument('--nsegs_per_env', type=int, default=1)
-    parser.add_argument('--envs_per_process', type=int, default=256)
+    parser.add_argument('--envs_per_process', type=int, default=128)
     parser.add_argument('--nlumps', type=int, default=1)
 
 
