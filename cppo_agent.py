@@ -170,9 +170,10 @@ class PpoOptimizer(object):
             #Calculate intrinsic returns and advantages.
             lastgaelam = 0
             for t in range(nsteps - 1, -1, -1):  # nsteps-2 ... 0
-                nextnew = self.rollout.buf_news[:, t + 1] if t + 1 < nsteps else self.rollout.buf_new_last
-                if not self.use_news:
-                    nextnew = 0
+                if self.use_news:
+                    nextnew = self.rollout.buf_news[:, t + 1] if t + 1 < nsteps else self.rollout.buf_new_last
+                else:
+                    nextnew = 0 # No dones for intrinsic rewards with self.use_news=False
                 nextvals = self.rollout.buf_vpreds_int[:, t + 1] if t + 1 < nsteps else self.rollout.buf_vpred_int_last
                 nextnotnew = 1 - nextnew
                 delta = int_rews[:, t] + self.gamma * nextvals * nextnotnew - self.rollout.buf_vpreds_int[:, t]
@@ -198,8 +199,6 @@ class PpoOptimizer(object):
             lastgaelam = 0
             for t in range(nsteps - 1, -1, -1):  # nsteps-2 ... 0
                 nextnew = self.rollout.buf_news[:, t + 1] if t + 1 < nsteps else self.rollout.buf_new_last
-                if not self.use_news:
-                    nextnew = 0
                 nextvals = self.rollout.buf_vpreds[:, t + 1] if t + 1 < nsteps else self.rollout.buf_vpred_last
                 nextnotnew = 1 - nextnew
                 delta = rews[:, t] + self.gamma * nextvals * nextnotnew - self.rollout.buf_vpreds[:, t]
