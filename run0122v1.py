@@ -249,11 +249,11 @@ if __name__ == '__main__':
     parser.add_argument('--dyn_from_pixels', type=int, default=0)
     parser.add_argument('--use_news', type=int, default=0)
     parser.add_argument('--ext_coeff', type=float, default=1.00)
-    parser.add_argument('--int_coeff', type=float, default=0.1)
+    parser.add_argument('--int_coeff', type=float, default=0.5)
     parser.add_argument('--layernorm', type=int, default=0)
-    parser.add_argument('--feat_learning', type=str, default='idf',
+    parser.add_argument('--feat_learning', type=str, default='rnd',
                         choices=["none", "idf", "rnd", "vaesph", "vaenonsph", "pix2pix"])
-    parser.add_argument('--num_vf', type=int, default=1, choices=[1,2])
+    parser.add_argument('--num_vf', type=int, default=2, choices=[1,2])
 
     args = parser.parse_args()
 
