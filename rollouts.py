@@ -150,7 +150,7 @@ class Rollout(object):
                     self.buf_new_last[sli] = nextnews
                     self.buf_ext_rews[sli, t] = ext_rews
                     if self.hps['num_vf']==2:
-                        _, self.buf_vpred_last_int[sli], self.buf_vpred_ext_last[sli], _ = self.policy.get_ac_value_nlp_2vf(nextobs)
+                        _, self.buf_vpred_int_last[sli], self.buf_vpred_ext_last[sli], _ = self.policy.get_ac_value_nlp_2vf(nextobs)
                     else:
                         _, self.buf_vpred_last[sli], _ = self.policy.get_ac_value_nlp(nextobs)
                     
