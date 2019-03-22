@@ -58,6 +58,7 @@ class Rollout(object):
         self.statlists = defaultdict(lambda: deque([], maxlen=100))
         self.stats = defaultdict(float)
         self.best_ext_ret = None
+        self.best_eplen = None
         self.all_visited_rooms = []
         self.all_scores = []
 
@@ -195,16 +196,20 @@ class Rollout(object):
                 if MPI.COMM_WORLD.Get_rank() == 0:
                     print("All visited levels")
                     print(self.all_visited_rooms)
-
+            current_minlen = np.min(all_ep_infos['l'])
             current_max = np.max(all_ep_infos['r'])
         else:
             current_max = None
+            current_minlen = None
         self.ep_infos_new = []
 
         if current_max is not None:
             if (self.best_ext_ret is None) or (current_max > self.best_ext_ret):
                 self.best_ext_ret = current_max
+            if (self.best_eplen is None) or (current_minlen < self.best_eplen):
+                self.best_eplen = current_minlen    
         self.current_max = current_max
+        self.current_minlen = current_minlen
 
     def env_step(self, l, acs):
         self.envs[l].step_async(acs)

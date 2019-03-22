@@ -209,6 +209,7 @@ class PpoOptimizer(object):
             advmean=self.buf_advs.mean(),
             advstd=self.buf_advs.std(),  
             recent_best_ext_ret=self.rollout.current_max,
+            recent_best_eplen = self.rollout.current_minlen
         )
 
         if self.hps['num_vf'] ==2:
@@ -225,15 +226,16 @@ class PpoOptimizer(object):
             info['rew_int_mean']=mean_int_rew
             info['recent_best_int_rew']=max_int_rew
         else:
-            info['retmean']=self.buf_rets.mean()
-            info['retstd']=self.buf_rets.std()
-            info['vpredmean']=self.rollout.buf_vpreds.mean()
-            info['vpredstd']=self.rollout.buf_vpreds.std()
+            # info['retmean']=self.buf_rets.mean()
+            # info['retstd']=self.buf_rets.std()
+            # info['vpredmean']=self.rollout.buf_vpreds.mean()
+            # info['vpredstd']=self.rollout.buf_vpreds.std()
             info['rew_mean']=np.mean(self.rollout.buf_rews)
-            info['ev']=explained_variance(self.rollout.buf_vpreds.ravel(), self.buf_rets.ravel())            
+            # info['ev']=explained_variance(self.rollout.buf_vpreds.ravel(), self.buf_rets.ravel())            
 
         if self.rollout.best_ext_ret is not None:
             info['best_ext_ret'] = self.rollout.best_ext_ret
+            info['best_eplen'] = self.rollout.best_eplen
 
         # normalize advantages
         if self.normadv:
@@ -287,8 +289,8 @@ class PpoOptimizer(object):
                 mblossvals.append(getsess().run(self._losses + (self._train,), fd)[:-1])
 
         mblossvals = [mblossvals[0]]
-        info.update(zip(['opt_' + ln for ln in self.loss_names], np.mean([mblossvals[0]], axis=0)))
-        info["rank"] = MPI.COMM_WORLD.Get_rank()
+        # info.update(zip(['opt_' + ln for ln in self.loss_names], np.mean([mblossvals[0]], axis=0)))
+        # info["rank"] = MPI.COMM_WORLD.Get_rank()
         self.n_updates += 1
         info["n_updates"] = self.n_updates
         info.update({dn: (np.mean(dvs) if len(dvs) > 0 else 0) for (dn, dvs) in self.rollout.statlists.items()})
