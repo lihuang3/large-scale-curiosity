@@ -209,7 +209,8 @@ class PpoOptimizer(object):
             advmean=self.buf_advs.mean(),
             advstd=self.buf_advs.std(),  
             recent_best_ext_ret=self.rollout.current_max,
-            recent_best_eplen = self.rollout.current_minlen
+            recent_best_eplen = self.rollout.current_minlen,
+            recent_worst_eplen = self.rollout.current_maxlen   
         )
 
         if self.hps['num_vf'] ==2:
@@ -231,6 +232,8 @@ class PpoOptimizer(object):
             # info['vpredmean']=self.rollout.buf_vpreds.mean()
             # info['vpredstd']=self.rollout.buf_vpreds.std()
             info['rew_mean']=np.mean(self.rollout.buf_rews)
+            info['eplen_std']=np.std(self.rollout.statlists['eplen'])            
+            info['eprew_std']=np.std(self.rollout.statlists['eprew'])
             # info['ev']=explained_variance(self.rollout.buf_vpreds.ravel(), self.buf_rets.ravel())            
 
         if self.rollout.best_ext_ret is not None:
