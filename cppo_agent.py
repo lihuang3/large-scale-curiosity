@@ -206,8 +206,8 @@ class PpoOptimizer(object):
             self.buf_rets[:] = self.buf_advs + self.rollout.buf_vpreds
         
         info = dict(
-            advmean=self.buf_advs.mean(),
-            advstd=self.buf_advs.std(),  
+            # advmean=self.buf_advs.mean(),
+            # advstd=self.buf_advs.std(),  
             recent_best_ext_ret=self.rollout.current_max,
             recent_best_eplen = self.rollout.current_minlen,
             recent_worst_eplen = self.rollout.current_maxlen   
@@ -301,9 +301,9 @@ class PpoOptimizer(object):
         if "states_visited" in info:
             info.pop("states_visited")
         tnow = time.time()
-        info["ups"] = 1. / (tnow - self.t_last_update)
+        # info["ups"] = 1. / (tnow - self.t_last_update)
         info["total_secs"] = tnow - self.t_start
-        info['tps'] = MPI.COMM_WORLD.Get_size() * self.rollout.nsteps * self.nenvs / (tnow - self.t_last_update)
+        # info['tps'] = MPI.COMM_WORLD.Get_size() * self.rollout.nsteps * self.nenvs / (tnow - self.t_last_update)
         self.t_last_update = tnow
 
         return info

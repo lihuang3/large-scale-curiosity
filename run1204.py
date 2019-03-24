@@ -7,7 +7,7 @@ import functools
 import os.path as osp
 from functools import partial
 
-import sys
+import sys, datetime
 
 sys.path.append('/project/becker/lihuang3/github/baselines2')
 
@@ -145,7 +145,7 @@ class Trainer(object):
                 info['update']['tcount'] += start_nupdates*args['nsteps_per_seg']*args['envs_per_process']
                 logger.logkvs(info['update'])
                 logger.dumpkvs()
-
+                print('Time elapsed ' + str(datetime.timedelta(seconds=info['update']['total_secs'])))                
                 
                 if info['update']['n_updates'] % 10 == 0 or info['update']['n_updates']==1: 
                     weights_index =  info['update']['n_updates']             
